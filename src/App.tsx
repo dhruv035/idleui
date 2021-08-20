@@ -37,23 +37,30 @@ const useStyles = makeStyles({
   }
 });
 function App() {
+  const a = new ethers.providers.Web3Provider((window as any).ethereum);
+  const b = a.getSigner();
   const classes = useStyles();
   const [val, setVal] = useState("0.0");
   const [bal, setBal] = useState("0");
   const [bal2, setBal2] = useState("0");
   const [flag, setFlag] = useState(false);
-
+  const [sign, setSign] = useState(b);
   async function initing() {
     try {
       const provider = new ethers.providers.Web3Provider(
         (window as any).ethereum
       );
-      let address = await provider.getSigner(0).getAddress();
-      if (address) {
-        setFlag(true);
-        console.log(address);
-        balancing();
-      }
+      let signer = await provider.getSigner();
+      console.log(signer);
+      let address = await signer.getAddress();
+      setSign(signer);
+      console.log(address);
+
+      setFlag(true);
+
+      console.log(provider.getSigner());
+
+      balancing();
     } catch (err) {
       console.log(err);
       setFlag(false);
@@ -87,11 +94,7 @@ function App() {
       (window as any).ethereum
     ).getSigner();
 
-    const daiContract = new ethers.Contract(
-      datadai.address,
-      datadai.abi,
-      signer
-    );
+    const daiContract = new ethers.Contract(datadai.address, datadai.abi, sign);
 
     const idleContract = new ethers.Contract(
       dataidle.address,
@@ -108,6 +111,7 @@ function App() {
       "0x0000000000000000000000000000000000000000"
     );
     console.log(tx);
+    balancing();
   }
   async function approve() {
     const signer = new ethers.providers.Web3Provider(
@@ -147,6 +151,10 @@ function App() {
       method: "eth_requestAccounts"
     });
     if (accounts) {
+      const signer = new ethers.providers.Web3Provider(
+        (window as any).ethereum
+      ).getSigner();
+      setSign(signer);
       balancing();
       setFlag(true);
     }
