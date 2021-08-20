@@ -1,6 +1,7 @@
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 import Card from "@material-ui/core/Card";
 import { makeStyles } from "@material-ui/core/styles";
 import CardActions from "@material-ui/core/CardActions";
@@ -38,15 +39,59 @@ const useStyles = makeStyles({
 function App() {
   const classes = useStyles();
   const [val, setVal] = useState("0.0");
+  const [bal, setBal] = useState("0");
+  const [bal2, setBal2] = useState("0");
+  const [flag, setFlag] = useState(false);
+
+  async function initing() {
+    try {
+      const provider = new ethers.providers.Web3Provider(
+        (window as any).ethereum
+      );
+      let address = await provider.getSigner(0).getAddress();
+      if (address) {
+        setFlag(true);
+        console.log(address);
+        balancing();
+      }
+    } catch (err) {
+      console.log(err);
+      setFlag(false);
+    }
+  }
+  initing();
+  async function balancing() {
+    const signer = new ethers.providers.Web3Provider(
+      (window as any).ethereum
+    ).getSigner();
+
+    const daiContract = new ethers.Contract(
+      datadai.address,
+      datadai.abi,
+      signer
+    );
+
+    const idleContract = new ethers.Contract(
+      dataidle.address,
+      dataidle.abi,
+      signer
+    );
+    let txx = await daiContract.balanceOf(signer.getAddress());
+    let txx2 = await idleContract.balanceOf(signer.getAddress());
+    setBal(ethers.utils.formatEther(txx));
+    setBal2(ethers.utils.formatEther(txx2));
+  }
+  //balancing();
   async function deposit() {
     const signer = new ethers.providers.Web3Provider(
       (window as any).ethereum
     ).getSigner();
-    /*const daiContract = new ethers.Contract(
+
+    const daiContract = new ethers.Contract(
       datadai.address,
       datadai.abi,
       signer
-    );*/
+    );
 
     const idleContract = new ethers.Contract(
       dataidle.address,
@@ -97,6 +142,15 @@ function App() {
     if (e) setVal(e);
     else setVal("0.0");
   }
+  async function login() {
+    let accounts = await (window as any).ethereum.request({
+      method: "eth_requestAccounts"
+    });
+    if (accounts) {
+      balancing();
+      setFlag(true);
+    }
+  }
 
   return (
     <div className="App">
@@ -107,6 +161,12 @@ function App() {
         alignItems="center"
         style={{ minHeight: "100vh" }}
       >
+        <Grid item xs={3}>
+          <Typography>{bal}</Typography>
+        </Grid>
+        <Grid item xs={3}>
+          <Typography>{bal2}</Typography>
+        </Grid>
         <Grid item xs={3}>
           <Card className={classes.root}>
             <CardActionArea>
@@ -140,6 +200,14 @@ function App() {
                 onClick={() => approve()}
               >
                 Approve
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => login()}
+                disabled={flag}
+              >
+                MetaMask Login
               </Button>
             </CardActions>
           </Card>
