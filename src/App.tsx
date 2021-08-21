@@ -1,8 +1,10 @@
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
+import SvgIcon from "@material-ui/core/SvgIcon";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import Card from "@material-ui/core/Card";
+import CardMedia from "@material-ui/core/CardMedia";
 import { makeStyles } from "@material-ui/core/styles";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
@@ -10,7 +12,7 @@ import { ethers } from "ethers";
 import dataidle from "./abi/idledata.json";
 import datadai from "./abi/daidata.json";
 import react, { useEffect, useState } from "react";
-import { CardActionArea } from "@material-ui/core";
+import CardActionArea from "@material-ui/core/CardActionArea";
 const defAdd = "0x0000000000000000000000000000000000000000";
 const useStyles = makeStyles({
   gridClass: {
@@ -19,6 +21,10 @@ const useStyles = makeStyles({
     justifyAlign: "center",
     justifyContent: "center",
     minHeight: "100vh"
+  },
+  media: {
+    height: 10,
+    paddingTop: "56.25%" // 16:9
   },
   root: {
     flexGrow: 1,
@@ -38,6 +44,9 @@ const useStyles = makeStyles({
 });
 function App() {
   const a = new ethers.providers.Web3Provider((window as any).ethereum);
+  const daiContract = new ethers.Contract(datadai.address, datadai.abi, a);
+
+  const idleContract = new ethers.Contract(dataidle.address, dataidle.abi, a);
   const b = a.getSigner();
   const classes = useStyles();
   const [val, setVal] = useState("0.0");
@@ -53,7 +62,6 @@ function App() {
       let signer = await provider.getSigner();
       console.log(signer);
       let address = await signer.getAddress();
-      setSign(signer);
       console.log(address);
 
       setFlag(true);
@@ -68,44 +76,24 @@ function App() {
   }
   initing();
   async function balancing() {
-    const signer = new ethers.providers.Web3Provider(
-      (window as any).ethereum
-    ).getSigner();
+    const daiC = daiContract.connect(sign);
 
-    const daiContract = new ethers.Contract(
-      datadai.address,
-      datadai.abi,
-      signer
-    );
-
-    const idleContract = new ethers.Contract(
-      dataidle.address,
-      dataidle.abi,
-      signer
-    );
-    let txx = await daiContract.balanceOf(signer.getAddress());
-    let txx2 = await idleContract.balanceOf(signer.getAddress());
+    const idleC = idleContract.connect(sign);
+    let txx = await daiContract.balanceOf(sign.getAddress());
+    let txx2 = await idleContract.balanceOf(sign.getAddress());
     setBal(ethers.utils.formatEther(txx));
     setBal2(ethers.utils.formatEther(txx2));
   }
   //balancing();
   async function deposit() {
-    const signer = new ethers.providers.Web3Provider(
-      (window as any).ethereum
-    ).getSigner();
+    const daiC = daiContract.connnect(sign);
 
-    const daiContract = new ethers.Contract(datadai.address, datadai.abi, sign);
-
-    const idleContract = new ethers.Contract(
-      dataidle.address,
-      dataidle.abi,
-      signer
-    );
-    console.log(signer.getAddress());
+    const idleC = idleContract.connect(sign);
+    console.log(sign.getAddress());
     const booler = true;
     //const tx1 = await daiContract.approve(dataidle.address, 5);
     //console.log(tx1);
-    const tx = await idleContract.mintIdleToken(
+    const tx = await idleC.mintIdleToken(
       ethers.utils.parseEther(val),
       booler,
       "0x0000000000000000000000000000000000000000"
@@ -114,29 +102,14 @@ function App() {
     balancing();
   }
   async function approve() {
-    const signer = new ethers.providers.Web3Provider(
-      (window as any).ethereum
-    ).getSigner();
-    const daiContract = new ethers.Contract(
-      datadai.address,
-      datadai.abi,
-      signer
-    );
-    const tx = await daiContract.approve(
+    const daiC = daiContract.connect(sign);
+    const tx = await daiC.approve(
       dataidle.address,
       ethers.utils.parseEther("100000.0")
     );
   }
   async function withdraw() {
-    const signer = new ethers.providers.Web3Provider(
-      (window as any).ethereum
-    ).getSigner();
-
-    const idleContract = new ethers.Contract(
-      dataidle.address,
-      dataidle.abi,
-      signer
-    );
+    const idleC = idleContract.connect(sign);
     const abc = await idleContract.redeemIdleToken(
       ethers.utils.parseEther(val)
     );
@@ -169,13 +142,20 @@ function App() {
         alignItems="center"
         style={{ minHeight: "100vh" }}
       >
-        <Grid item xs={3}>
-          <Typography>{bal}</Typography>
+        <Grid item xs={2}>
+          <Card>
+            <CardMedia className={classes.media} src="logo.svg" />
+          </Card>
+          <Card>
+            <CardContent>
+              <Typography>{bal}</Typography>
+            </CardContent>
+          </Card>
         </Grid>
         <Grid item xs={3}>
           <Typography>{bal2}</Typography>
         </Grid>
-        <Grid item xs={3}>
+        <Grid item xs={4}>
           <Card className={classes.root}>
             <CardActionArea>
               <CardContent>
@@ -192,6 +172,7 @@ function App() {
                 variant="contained"
                 color="primary"
                 onClick={() => deposit()}
+                disabled={!flag}
               >
                 Deposit
               </Button>
@@ -199,6 +180,7 @@ function App() {
                 variant="contained"
                 color="primary"
                 onClick={() => withdraw()}
+                disabled={!flag}
               >
                 Withdraw
               </Button>
@@ -206,6 +188,7 @@ function App() {
                 variant="contained"
                 color="primary"
                 onClick={() => approve()}
+                disabled={!flag}
               >
                 Approve
               </Button>
