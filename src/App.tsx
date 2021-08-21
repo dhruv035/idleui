@@ -210,7 +210,12 @@ function App() {
           alignItems="center"
         >
           <Grid item xs={5}>
-            <Typography gutterBottom variant="subtitle2" component="h2">
+            <Typography
+              gutterBottom
+              variant="subtitle2"
+              component="h2"
+              align="center"
+            >
               Dai Balance
             </Typography>
             <Card className={classes.balanceCard}>
@@ -221,7 +226,12 @@ function App() {
             </Card>
           </Grid>
           <Grid item xs={5}>
-            <Typography gutterBottom variant="subtitle2" component="h2">
+            <Typography
+              gutterBottom
+              variant="subtitle2"
+              component="h2"
+              align="center"
+            >
               idleDai Balance
             </Typography>
             <Card className={classes.balanceCard}>
@@ -268,7 +278,7 @@ function App() {
                   variant="contained"
                   color="primary"
                   onClick={() => withdraw()}
-                  disabled={!parseFloat(val) || !flag}
+                  disabled={(!parseFloat(val) || !flag) && val != "0"}
                 >
                   Withdraw
                 </Button>
