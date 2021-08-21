@@ -125,11 +125,10 @@ function App() {
         hexZeroPad(await sign.getAddress(), 32)
       ]
     };
-
+    //check listeners
     a.on(filter, (log, event) => {
       console.log();
       balancing();
-      // Emitted any token is sent TO either address
     });
 
     const tx = await idleC.mintIdleToken(
