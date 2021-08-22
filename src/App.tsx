@@ -63,8 +63,8 @@ function App() {
   const b = a.getSigner();
   const classes = useStyles();
   const [val, setVal] = useState("0.0");
-  const [bal, setBal] = useState("0");
-  const [bal2, setBal2] = useState("0");
+  const [daiBal, setDaiBal] = useState("0");
+  const [idleBal, setIdleBal] = useState("0");
   const [enableUI, setEnableUI] = useState(false);
   const [sign, setSign] = useState(b);
   const [chainFlag, setChainFlag] = useState(false);
@@ -120,12 +120,12 @@ function App() {
       let txx2 = await idleContract.balanceOf(sign.getAddress());
 
       let display1 = ethers.utils.formatEther(txx);
-      setBal(truncate(display1, 4));
+      setDaiBal(truncate(display1, 4));
       let display2 = ethers.utils.formatEther(txx2);
-      setBal2(truncate(display2, 4));
+      setIdleBal(truncate(display2, 4));
     } catch (err) {
-      setBal("0");
-      setBal2("0");
+      setDaiBal("0");
+      setIdleBal("0");
     }
   }
   //balancing();
@@ -252,7 +252,7 @@ function App() {
             <Card className={classes.balanceCard}>
               <CardMedia className={classes.media} image={daiImage}></CardMedia>
               <CardContent>
-                <Typography>{bal}</Typography>
+                <Typography>{daiBal}</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -272,7 +272,7 @@ function App() {
                 image={idaiImage}
               ></CardMedia>
               <CardContent>
-                <Typography>{bal2}</Typography>
+                <Typography>{idleBal}</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -301,7 +301,11 @@ function App() {
                   variant="contained"
                   color="primary"
                   onClick={() => deposit()}
-                  disabled={!parseFloat(val) || !enableUI}
+                  disabled={
+                    !parseFloat(val) ||
+                    !enableUI ||
+                    parseFloat(daiBal) < parseFloat(val)
+                  }
                 >
                   Deposit
                 </Button>
@@ -309,7 +313,11 @@ function App() {
                   variant="contained"
                   color="primary"
                   onClick={() => withdraw()}
-                  disabled={(!parseFloat(val) || !enableUI) && val != "0"}
+                  disabled={
+                    !parseFloat(val) ||
+                    !enableUI ||
+                    parseFloat(idleBal) < parseFloat(val)
+                  }
                 >
                   Withdraw
                 </Button>
