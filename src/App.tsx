@@ -69,7 +69,7 @@ function App() {
   const [enableUI, setEnableUI] = useState(false);
   const [sign, setSign] = useState(b);
   const [chainFlag, setChainFlag] = useState(false);
-  const [apr, setApr] = useState("0.0");
+  const [apr, setApr] = useState("0");
   const [tokenPrice, setTokenPrice] = useState("0");
   const [govTokenBalance, setGovTokenBalance] = useState("0");
 
@@ -358,7 +358,7 @@ function App() {
                   variant="contained"
                   color="primary"
                   onClick={() => redeem()}
-                  disabled={!enableUI}
+                  disabled={!enableUI || !parseFloat(govTokenBalance)}
                 >
                   Redeem IDLE
                 </Button>
