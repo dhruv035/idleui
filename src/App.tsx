@@ -41,7 +41,8 @@ const useStyles = makeStyles(theme => ({
   },
   balanceCard: {
     display: "flex",
-    flexDirection: "row"
+    flexDirection: "row",
+    minHeight: 80
   },
   bullet: {
     display: "inline-block",
@@ -68,9 +69,17 @@ function App() {
   const [enableUI, setEnableUI] = useState(false);
   const [sign, setSign] = useState(b);
   const [chainFlag, setChainFlag] = useState(false);
+  const [apr, setApr] = useState("0.0");
+  const [tokenPrice, setTokenPrice] = useState("0.0");
+
+  console.log("IdleAddress = " + dataidle.address);
 
   useEffect(() => {
     async function initing() {
+      let result = ethers.utils.formatEther(await idleContract.getAvgAPR());
+      setApr(truncate(result, 5));
+      result = ethers.utils.formatEther(await idleContract.tokenPrice());
+      setTokenPrice(truncate(result, 5));
       try {
         const provider = new ethers.providers.Web3Provider(
           (window as any).ethereum
@@ -234,6 +243,12 @@ function App() {
           <Typography variant="h4" component="h5" hidden={!chainFlag}>
             Wrong Chain
           </Typography>
+          <Typography variant="h4" component="h5">
+            APR is {apr}%
+          </Typography>
+          <Typography variant="h4" component="h5">
+            Token Price is {tokenPrice}
+          </Typography>
         </Grid>
         <Grid
           container
@@ -275,6 +290,12 @@ function App() {
               ></CardMedia>
               <CardContent>
                 <Typography>{idleBal}</Typography>
+                <Typography>
+                  {(parseFloat(tokenPrice) * parseFloat(idleBal)).toPrecision(
+                    6
+                  )}
+                  (in Dai)
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
