@@ -157,15 +157,14 @@ function App() {
     };
     if (input == 1) {
       a.on(filter1, (log, event) => {
-        console.log();
         balancing();
       });
     } else if (input == 2) {
       a.on(filter2, (log, event) => {
-        console.log();
         balancing();
       });
     }
+    setVal("");
   }
   async function deposit() {
     const idleC = idleContract.connect(sign);
@@ -177,23 +176,26 @@ function App() {
       "0x0000000000000000000000000000000000000000"
     );
     console.log(tx);
+    setVal("");
     listener(2);
   }
   async function withdraw() {
     const idleC = idleContract.connect(sign);
     const abc = await idleC.redeemIdleToken(ethers.utils.parseEther(val));
     console.log(abc);
+
     listener(1);
   }
   async function redeem() {
     const idleC = idleContract.connect(sign);
     const abc = await idleC.redeemIdleToken(ethers.utils.parseEther("0"));
     console.log(abc);
+
     listener(1);
   }
   function handleChange(e: string | any) {
     if (e) setVal(e);
-    else setVal("0.0");
+    else setVal("");
   }
   async function login() {
     let accounts = await (window as any).ethereum.request({
@@ -292,6 +294,7 @@ function App() {
                     id="standard-basic"
                     type="text"
                     label="Enter Amount"
+                    value={val}
                     onChange={e => handleChange(e.target.value)}
                   ></TextField>
                 </CardContent>
