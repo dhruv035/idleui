@@ -8,7 +8,7 @@ import CardMedia from "@material-ui/core/CardMedia";
 import { makeStyles } from "@material-ui/core/styles";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
-import { ethers } from "ethers";
+import { ethers, providers } from "ethers";
 import dataidle from "./abi/idledata.json";
 import datadai from "./abi/daidata.json";
 import Paper from "@material-ui/core/Paper";
@@ -65,8 +65,40 @@ function App() {
   const [val, setVal] = useState("0.0");
   const [bal, setBal] = useState("0");
   const [bal2, setBal2] = useState("0");
-  const [flag, setFlag] = useState(false);
+  const [enableUI, setEnableUI] = useState(false);
   const [sign, setSign] = useState(b);
+  const [chainFlag, setChainFlag] = useState(false);
+
+  useEffect(() => {
+    async function initing() {
+      try {
+        const provider = new ethers.providers.Web3Provider(
+          (window as any).ethereum
+        );
+        const chainId = await (window as any).ethereum.request({
+          method: "eth_chainId"
+        });
+        if (chainId != 42) {
+          throw "Wrong Chain";
+        }
+        let signer = await provider.getSigner();
+        console.log(signer);
+        let address = await signer.getAddress();
+        console.log(address);
+
+        setEnableUI(true);
+
+        console.log(provider.getSigner());
+        console.log("balance possible");
+      } catch (err) {
+        console.log(err);
+
+        setEnableUI(false);
+      }
+      balancing();
+    }
+    initing();
+  });
 
   function truncate(str: string, maxDecimalDigits: number) {
     if (str.includes(".")) {
@@ -76,69 +108,31 @@ function App() {
     return str;
   }
 
-  async function initing() {
-    try {
-      const provider = new ethers.providers.Web3Provider(
-        (window as any).ethereum
-      );
-      let signer = await provider.getSigner();
-      console.log(signer);
-      let address = await signer.getAddress();
-      console.log(address);
-
-      setFlag(true);
-
-      console.log(provider.getSigner());
-
-      balancing();
-    } catch (err) {
-      console.log(err);
-      setFlag(false);
-    }
-  }
-  initing();
   async function balancing() {
     const daiC = daiContract.connect(sign);
 
     const idleC = idleContract.connect(sign);
-    let txx = await daiC.balanceOf(sign.getAddress());
-    let txx2 = await idleC.balanceOf(sign.getAddress());
+    try {
+      const chainId = await (window as any).ethereum.request({
+        method: "eth_chainId"
+      });
+      if (chainId != 42) {
+        throw "Wrong Chain";
+      }
+      let txx = await daiC.balanceOf(sign.getAddress());
+      let txx2 = await idleC.balanceOf(sign.getAddress());
 
-    let display1 = ethers.utils.formatEther(txx);
-    setBal(truncate(display1, 4));
-    let display2 = ethers.utils.formatEther(txx2);
-    setBal2(truncate(display2, 4));
+      let display1 = ethers.utils.formatEther(txx);
+      setBal(truncate(display1, 4));
+      let display2 = ethers.utils.formatEther(txx2);
+      setBal2(truncate(display2, 4));
+    } catch (err) {
+      setBal("0");
+      setBal2("0");
+    }
   }
   //balancing();
-  async function deposit() {
-    const idleC = idleContract.connect(sign);
-    console.log(sign.getAddress());
-    const booler = true;
 
-    const a = new ethers.providers.Web3Provider((window as any).ethereum);
-
-    let filter = {
-      address: dataidle.address,
-      topics: [
-        ethers.utils.id("Transfer(address,address,uint256)"),
-        null,
-        hexZeroPad(await sign.getAddress(), 32)
-      ]
-    };
-    //check listeners
-    a.on(filter, (log, event) => {
-      console.log();
-      balancing();
-    });
-
-    const tx = await idleC.mintIdleToken(
-      ethers.utils.parseEther(val),
-      booler,
-      "0x0000000000000000000000000000000000000000"
-    );
-    console.log(tx);
-    balancing();
-  }
   async function approve() {
     const daiC = daiContract.connect(sign);
     const tx = await daiC.approve(
@@ -146,26 +140,45 @@ function App() {
       ethers.utils.parseEther("100000.0")
     );
   }
-  async function withdraw() {
+  async function listener() {
     const a = new ethers.providers.Web3Provider((window as any).ethereum);
-    const idleC = idleContract.connect(sign);
-    const abc = await idleC.redeemIdleToken(ethers.utils.parseEther(val));
-    console.log(abc);
-
     let filter = {
       address: dataidle.address,
       topics: [
         ethers.utils.id("Transfer(address,address,uint256)"),
         hexZeroPad(await sign.getAddress(), 32),
-        null
+        hexZeroPad(await sign.getAddress(), 32)
       ]
     };
 
     a.on(filter, (log, event) => {
       console.log();
       balancing();
-      // Emitted any token is sent TO either address
     });
+  }
+  async function deposit() {
+    const idleC = idleContract.connect(sign);
+    console.log(sign.getAddress());
+    const booler = true;
+    const tx = await idleC.mintIdleToken(
+      ethers.utils.parseEther(val),
+      booler,
+      "0x0000000000000000000000000000000000000000"
+    );
+    console.log(tx);
+    listener();
+  }
+  async function withdraw() {
+    const idleC = idleContract.connect(sign);
+    const abc = await idleC.redeemIdleToken(ethers.utils.parseEther(val));
+    console.log(abc);
+    listener();
+  }
+  async function redeem() {
+    const idleC = idleContract.connect(sign);
+    const abc = await idleC.redeemIdleToken(ethers.utils.parseEther("0"));
+    console.log(abc);
+    listener();
   }
   function handleChange(e: string | any) {
     if (e) setVal(e);
@@ -181,9 +194,13 @@ function App() {
       ).getSigner();
       setSign(signer);
       balancing();
-      setFlag(true);
+      setEnableUI(true);
     }
   }
+  (window as any).ethereum.on("chainChanged", (chainId: number) => {
+    if (chainId == 42) setChainFlag(false);
+    else setChainFlag(true);
+  });
 
   return (
     <div className={classes.root}>
@@ -198,8 +215,11 @@ function App() {
           <Typography variant="h2" component="h5">
             IDLE
           </Typography>
-          <Typography variant="h4" component="h5" hidden={!flag}>
+          <Typography variant="h4" component="h5" hidden={!enableUI}>
             Logged In
+          </Typography>
+          <Typography variant="h4" component="h5" hidden={!chainFlag}>
+            Wrong Chain
           </Typography>
         </Grid>
         <Grid
@@ -270,7 +290,7 @@ function App() {
                   variant="contained"
                   color="primary"
                   onClick={() => deposit()}
-                  disabled={!parseFloat(val) || !flag}
+                  disabled={!parseFloat(val) || !enableUI}
                 >
                   Deposit
                 </Button>
@@ -278,15 +298,23 @@ function App() {
                   variant="contained"
                   color="primary"
                   onClick={() => withdraw()}
-                  disabled={(!parseFloat(val) || !flag) && val != "0"}
+                  disabled={(!parseFloat(val) || !enableUI) && val != "0"}
                 >
                   Withdraw
                 </Button>
                 <Button
                   variant="contained"
                   color="primary"
+                  onClick={() => redeem()}
+                  disabled={!enableUI}
+                >
+                  Redeem IDLE
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
                   onClick={() => approve()}
-                  disabled={!flag}
+                  disabled={!enableUI}
                 >
                   Approve
                 </Button>
@@ -294,7 +322,7 @@ function App() {
                   variant="contained"
                   color="primary"
                   onClick={() => login()}
-                  disabled={flag}
+                  disabled={enableUI || chainFlag}
                 >
                   MetaMask Login
                 </Button>
