@@ -20,10 +20,14 @@
     "web-vitals": "^1.0.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "build": "npm run build-bundle && npm run build-image",
+    "build-bundle": "react-scripts build",
+    "build-image": "docker build --file ops/Dockerfile --tag hosting .",
+    "eject": "react-scripts eject",
+    "publish": "bash ops/publish.sh",
+    "start": "react-scripts start",
+    "restart": "bash ops/start.sh"
   },
   "eslintConfig": {
     "extends": [

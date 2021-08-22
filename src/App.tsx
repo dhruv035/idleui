@@ -17,52 +17,16 @@ import CardActionArea from "@material-ui/core/CardActionArea";
 import daiImage from "./imgofdai.jpg";
 import idaiImage from "./idle.jpeg";
 import { hexZeroPad } from "ethers/lib/utils";
+import { useStyles } from "./styles.js";
 const defAdd = "0x0000000000000000000000000000000000000000";
-const useStyles = makeStyles(theme => ({
-  gridClass: {
-    spacing: 0,
-    alignItems: "center",
-    justifyAlign: "center",
-    justifyContent: "center"
-  },
-  paper: {
-    padding: theme.spacing(2),
-    margin: "auto",
-    maxWidth: 1500,
-    maxheight: 1500
-  },
-  media: {
-    height: 50,
-    width: 50
-    // 16:9
-  },
-  root: {
-    display: "flex"
-  },
-  balanceCard: {
-    display: "flex",
-    flexDirection: "row",
-    minHeight: 100
-  },
-  bullet: {
-    display: "inline-block",
-    margin: "0 2px",
-    transform: "scale(0.8)"
-  },
-  title: {
-    fontSize: 14
-  },
-  pos: {
-    marginBottom: 12
-  }
-}));
+
 function App() {
   const a = new ethers.providers.Web3Provider((window as any).ethereum);
   const daiContract = new ethers.Contract(datadai.address, datadai.abi, a);
   const idleContract = new ethers.Contract(dataidle.address, dataidle.abi, a);
   const b = a.getSigner();
   const classes = useStyles();
-  const [val, setVal] = useState("0.0");
+  const [val, setVal] = useState("");
   const [daiBal, setDaiBal] = useState("0");
   const [idleBal, setIdleBal] = useState("0");
   const [enableUI, setEnableUI] = useState(false);
@@ -74,10 +38,6 @@ function App() {
 
   useEffect(() => {
     async function initing() {
-      let result = ethers.utils.formatEther(await idleContract.getAvgAPR());
-      setApr(truncate(result, 5));
-      result = ethers.utils.formatEther(await idleContract.tokenPrice());
-      setTokenPrice(truncate(result, 5));
       try {
         const provider = new ethers.providers.Web3Provider(
           (window as any).ethereum
@@ -88,6 +48,10 @@ function App() {
         if (chainId != 42) {
           throw "Wrong Chain";
         }
+        let result = ethers.utils.formatEther(await idleContract.getAvgAPR());
+        setApr(truncate(result, 5));
+        result = ethers.utils.formatEther(await idleContract.tokenPrice());
+        setTokenPrice(truncate(result, 5));
         let signer = await provider.getSigner();
         console.log(signer);
         let address = await signer.getAddress();
@@ -98,6 +62,11 @@ function App() {
         console.log(provider.getSigner());
         console.log("balance possible");
       } catch (err) {
+        if (err == "Wrong Chain") {
+          setChainFlag(true);
+          setApr("0");
+          setTokenPrice("0");
+        }
         console.log(err);
 
         setEnableUI(false);
@@ -199,7 +168,7 @@ function App() {
     listener(2);
   }
 
-  //Burn idleDAI tokens to get DAAI
+  //Burn idleDAI tokens to get DAI
   async function withdraw() {
     const idleC = idleContract.connect(sign);
     const abc = await idleC.redeemIdleToken(ethers.utils.parseEther(val));
