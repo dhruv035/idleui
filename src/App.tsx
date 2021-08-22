@@ -42,7 +42,7 @@ const useStyles = makeStyles(theme => ({
   balanceCard: {
     display: "flex",
     flexDirection: "row",
-    minHeight: 80
+    minHeight: 100
   },
   bullet: {
     display: "inline-block",
@@ -70,7 +70,8 @@ function App() {
   const [sign, setSign] = useState(b);
   const [chainFlag, setChainFlag] = useState(false);
   const [apr, setApr] = useState("0.0");
-  const [tokenPrice, setTokenPrice] = useState("0.0");
+  const [tokenPrice, setTokenPrice] = useState("0");
+  const [govTokenBalance, setGovTokenBalance] = useState("0");
 
   console.log("IdleAddress = " + dataidle.address);
 
@@ -125,13 +126,18 @@ function App() {
       if (chainId != 42) {
         throw "Wrong Chain";
       }
+
       let txx = await daiContract.balanceOf(sign.getAddress());
       let txx2 = await idleContract.balanceOf(sign.getAddress());
+      let txx3 = await idleContract.getGovTokensAmounts(sign.getAddress());
+      console.log("GOV BALANCE  " + txx3);
 
       let display1 = ethers.utils.formatEther(txx);
       setDaiBal(truncate(display1, 4));
       let display2 = ethers.utils.formatEther(txx2);
       setIdleBal(truncate(display2, 4));
+      let display3 = ethers.utils.formatEther(txx3);
+      setGovTokenBalance(truncate(display3, 4));
     } catch (err) {
       setDaiBal("0");
       setIdleBal("0");
@@ -248,6 +254,9 @@ function App() {
           </Typography>
           <Typography variant="h4" component="h5">
             Token Price is {tokenPrice}
+          </Typography>
+          <Typography variant="h4" component="h5">
+            Token Balance is {govTokenBalance}
           </Typography>
         </Grid>
         <Grid
