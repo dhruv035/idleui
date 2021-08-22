@@ -109,9 +109,6 @@ function App() {
   }
 
   async function balancing() {
-    const daiC = daiContract.connect(sign);
-
-    const idleC = idleContract.connect(sign);
     try {
       const chainId = await (window as any).ethereum.request({
         method: "eth_chainId"
@@ -119,8 +116,8 @@ function App() {
       if (chainId != 42) {
         throw "Wrong Chain";
       }
-      let txx = await daiC.balanceOf(sign.getAddress());
-      let txx2 = await idleC.balanceOf(sign.getAddress());
+      let txx = await daiContract.balanceOf(sign.getAddress());
+      let txx2 = await idleContract.balanceOf(sign.getAddress());
 
       let display1 = ethers.utils.formatEther(txx);
       setBal(truncate(display1, 4));
@@ -140,21 +137,35 @@ function App() {
       ethers.utils.parseEther("100000.0")
     );
   }
-  async function listener() {
+  async function listener(input: number) {
     const a = new ethers.providers.Web3Provider((window as any).ethereum);
-    let filter = {
+    let filter1 = {
       address: dataidle.address,
       topics: [
         ethers.utils.id("Transfer(address,address,uint256)"),
         hexZeroPad(await sign.getAddress(), 32),
+        null
+      ]
+    };
+    let filter2 = {
+      address: dataidle.address,
+      topics: [
+        ethers.utils.id("Transfer(address,address,uint256)"),
+        null,
         hexZeroPad(await sign.getAddress(), 32)
       ]
     };
-
-    a.on(filter, (log, event) => {
-      console.log();
-      balancing();
-    });
+    if (input == 1) {
+      a.on(filter1, (log, event) => {
+        console.log();
+        balancing();
+      });
+    } else if (input == 2) {
+      a.on(filter2, (log, event) => {
+        console.log();
+        balancing();
+      });
+    }
   }
   async function deposit() {
     const idleC = idleContract.connect(sign);
@@ -166,19 +177,19 @@ function App() {
       "0x0000000000000000000000000000000000000000"
     );
     console.log(tx);
-    listener();
+    listener(2);
   }
   async function withdraw() {
     const idleC = idleContract.connect(sign);
     const abc = await idleC.redeemIdleToken(ethers.utils.parseEther(val));
     console.log(abc);
-    listener();
+    listener(1);
   }
   async function redeem() {
     const idleC = idleContract.connect(sign);
     const abc = await idleC.redeemIdleToken(ethers.utils.parseEther("0"));
     console.log(abc);
-    listener();
+    listener(1);
   }
   function handleChange(e: string | any) {
     if (e) setVal(e);
