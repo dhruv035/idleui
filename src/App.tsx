@@ -59,7 +59,6 @@ const useStyles = makeStyles(theme => ({
 function App() {
   const a = new ethers.providers.Web3Provider((window as any).ethereum);
   const daiContract = new ethers.Contract(datadai.address, datadai.abi, a);
-
   const idleContract = new ethers.Contract(dataidle.address, dataidle.abi, a);
   const b = a.getSigner();
   const classes = useStyles();
@@ -72,8 +71,6 @@ function App() {
   const [apr, setApr] = useState("0");
   const [tokenPrice, setTokenPrice] = useState("0");
   const [govTokenBalance, setGovTokenBalance] = useState("0");
-
-  console.log("IdleAddress = " + dataidle.address);
 
   useEffect(() => {
     async function initing() {
@@ -110,6 +107,7 @@ function App() {
     initing();
   });
 
+  //truncate strings for Display
   function truncate(str: string, maxDecimalDigits: number) {
     if (str.includes(".")) {
       const parts = str.split(".");
@@ -118,6 +116,7 @@ function App() {
     return str;
   }
 
+  //Fetch Balances
   async function balancing() {
     try {
       const chainId = await (window as any).ethereum.request({
@@ -133,18 +132,19 @@ function App() {
       console.log("GOV BALANCE  " + txx3);
 
       let display1 = ethers.utils.formatEther(txx);
-      setDaiBal(truncate(display1, 4));
       let display2 = ethers.utils.formatEther(txx2);
+      let display3 = ethers.utils.formatEther(txx3[0]);
+
+      setDaiBal(truncate(display1, 4));
       setIdleBal(truncate(display2, 4));
-      let display3 = ethers.utils.formatEther(txx3);
       setGovTokenBalance(truncate(display3, 4));
     } catch (err) {
       setDaiBal("0");
       setIdleBal("0");
     }
   }
-  //balancing();
 
+  //Approve Contract to spend your DAI
   async function approve() {
     const daiC = daiContract.connect(sign);
     const tx = await daiC.approve(
@@ -152,6 +152,8 @@ function App() {
       ethers.utils.parseEther("100000.0")
     );
   }
+
+  //Listener for balance update
   async function listener(input: number) {
     const a = new ethers.providers.Web3Provider((window as any).ethereum);
     let filter1 = {
@@ -181,6 +183,8 @@ function App() {
     }
     setVal("");
   }
+
+  //Deposit DAI tokens to mint idleDAI
   async function deposit() {
     const idleC = idleContract.connect(sign);
     console.log(sign.getAddress());
@@ -194,6 +198,8 @@ function App() {
     setVal("");
     listener(2);
   }
+
+  //Burn idleDAI tokens to get DAAI
   async function withdraw() {
     const idleC = idleContract.connect(sign);
     const abc = await idleC.redeemIdleToken(ethers.utils.parseEther(val));
@@ -201,6 +207,8 @@ function App() {
 
     listener(1);
   }
+
+  //Redeem Governance Tokens
   async function redeem() {
     const idleC = idleContract.connect(sign);
     const abc = await idleC.redeemIdleToken(ethers.utils.parseEther("0"));
@@ -208,10 +216,8 @@ function App() {
 
     listener(1);
   }
-  function handleChange(e: string | any) {
-    if (e) setVal(e);
-    else setVal("");
-  }
+
+  //Metamask Login
   async function login() {
     let accounts = await (window as any).ethereum.request({
       method: "eth_requestAccounts"
@@ -225,6 +231,12 @@ function App() {
       setEnableUI(true);
     }
   }
+
+  function handleChange(e: string | any) {
+    if (e) setVal(e);
+    else setVal("");
+  }
+
   (window as any).ethereum.on("chainChanged", (chainId: number) => {
     if (chainId == 42) setChainFlag(false);
     else setChainFlag(true);
@@ -256,7 +268,7 @@ function App() {
             Token Price is {tokenPrice}
           </Typography>
           <Typography variant="h4" component="h5">
-            Token Balance is {govTokenBalance}
+            Gov Token Balance is {govTokenBalance}
           </Typography>
         </Grid>
         <Grid
