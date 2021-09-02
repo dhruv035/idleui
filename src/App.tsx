@@ -1,3 +1,7 @@
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from "@material-ui/core/Toolbar";
+import IconButton from "@material-ui/core/IconButton";
+import MenuIcon from "@material-ui/icons/Menu";
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
 import SvgIcon from "@material-ui/core/SvgIcon";
@@ -17,8 +21,10 @@ import CardActionArea from "@material-ui/core/CardActionArea";
 import daiImage from "./imgofdai.jpg";
 import idaiImage from "./idle.jpeg";
 import { hexZeroPad } from "ethers/lib/utils";
-import { useStyles } from "./styles.js";
-const defAdd = "0x0000000000000000000000000000000000000000";
+import { useStyles } from "./styles";
+import Avatar from "@material-ui/core/Avatar";
+import { Container } from "@material-ui/core";
+import { Watch } from "./batchcall";
 
 function App() {
   const a = new ethers.providers.Web3Provider((window as any).ethereum);
@@ -48,19 +54,14 @@ function App() {
         if (chainId != 42) {
           throw "Wrong Chain";
         }
+
         let result = ethers.utils.formatEther(await idleContract.getAvgAPR());
         setApr(truncate(result, 5));
         result = ethers.utils.formatEther(await idleContract.tokenPrice());
         setTokenPrice(truncate(result, 5));
         let signer = await provider.getSigner();
-        console.log(signer);
         let address = await signer.getAddress();
-        console.log(address);
-
         setEnableUI(true);
-
-        console.log(provider.getSigner());
-        console.log("balance possible");
       } catch (err) {
         if (err == "Wrong Chain") {
           setChainFlag(true);
@@ -98,7 +99,6 @@ function App() {
       let txx = await daiContract.balanceOf(sign.getAddress());
       let txx2 = await idleContract.balanceOf(sign.getAddress());
       let txx3 = await idleContract.getGovTokensAmounts(sign.getAddress());
-      console.log("GOV BALANCE  " + txx3);
 
       let display1 = ethers.utils.formatEther(txx);
       let display2 = ethers.utils.formatEther(txx2);
@@ -115,11 +115,16 @@ function App() {
 
   //Approve Contract to spend your DAI
   async function approve() {
-    const daiC = daiContract.connect(sign);
+    // @ts-ignore
+    let result = await Watch();
+    console.log(result);
+
+    /*const daiC = daiContract.connect(sign);
     const tx = await daiC.approve(
       dataidle.address,
       ethers.utils.parseEther("100000.0")
     );
+    */
   }
 
   //Listener for balance update
@@ -213,7 +218,19 @@ function App() {
 
   return (
     <div className={classes.root}>
-      <Paper className={classes.paper}>
+      <Container className={classes.paper} maxWidth={false}>
+        <AppBar position="sticky" className={classes.appBar}>
+          <Toolbar>
+            <IconButton
+              edge="start"
+              className={classes.menuButton}
+              color="inherit"
+              aria-label="menu"
+            >
+              <MenuIcon />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
         <Grid
           container
           spacing={2}
@@ -248,21 +265,41 @@ function App() {
           alignItems="center"
         >
           <Grid item xs={5}>
-            <Typography
-              gutterBottom
-              variant="subtitle2"
-              component="h2"
-              align="center"
-            >
-              Dai Balance
-            </Typography>
+            <Paper className={classes.paper}>
+              <Avatar alt="Dai" className={classes.avatar} src={daiImage} />
+              <Typography
+                gutterBottom
+                variant="subtitle2"
+                component="h2"
+                align="center"
+              >
+                Dai Balance
+              </Typography>
+            </Paper>
+          </Grid>
+
+          {/* <Grid item xs={5}>
+            <Paper className={classes.paper}>
+              <Typography
+                gutterBottom
+                variant="subtitle2"
+                component="h2"
+                align="center"
+              >
+                Dai Balance
+              </Typography>
+
+              <Avatar alt="Idle" src={idaiImage} />
+            </Paper>
+
             <Card className={classes.balanceCard}>
               <CardMedia className={classes.media} image={daiImage}></CardMedia>
               <CardContent>
                 <Typography>{daiBal}</Typography>
               </CardContent>
             </Card>
-          </Grid>
+  </Grid>*/}
+
           <Grid item xs={5}>
             <Typography
               gutterBottom
@@ -272,6 +309,7 @@ function App() {
             >
               idleDai Balance
             </Typography>
+
             <Card className={classes.balanceCard}>
               <CardMedia className={classes.media} image={daiImage}></CardMedia>
               <CardMedia
@@ -363,7 +401,7 @@ function App() {
             </Card>
           </Grid>
         </Grid>
-      </Paper>
+      </Container>
     </div>
   );
 }
