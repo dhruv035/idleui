@@ -16,7 +16,7 @@ import { ethers, providers } from "ethers";
 import dataidle from "./abi/idledata.json";
 import datadai from "./abi/daidata.json";
 import Paper from "@material-ui/core/Paper";
-import react, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import CardActionArea from "@material-ui/core/CardActionArea";
 import daiImage from "./imgofdai.jpg";
 import idaiImage from "./idle.jpeg";

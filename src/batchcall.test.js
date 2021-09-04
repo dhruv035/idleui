@@ -23,7 +23,7 @@ test("check the queue feature", () => {
       returns: [["BALANCE_OF_MKR_FISH", val => val / 10 ** 18]]
     }
   ];
-  return ProcessQueue(calls).then(result => {
+  ProcessQueue(calls).then(result => {
     expect(result[0].type).toBe("BALANCE_OF_MKR_WHALE");
   });
   calls.push({
@@ -31,9 +31,8 @@ test("check the queue feature", () => {
     call: ["balanceOf(address)(uint256)", MKR_WHALE],
     returns: [["BALANCE_OF_MKR_WHALE", val => val / 10 ** 18]]
   });
-  setTimeout(function() {
-    return ProcessQueue(calls).then(result => {
-      expect(result[2].type).toBe("BALANCE_OF_MKR_WHALE");
-    });
-  }, 3000);
+
+  ProcessQueue(calls).then(result => {
+    expect(result[3].type).toBe("BALANCE_OF_MKR_WHALE");
+  });
 });
