@@ -1,6 +1,6 @@
-import { Button } from "@material-ui/core";
+import { Button, Typography } from "@material-ui/core";
 import react, { useState, useEffect } from "react";
-import { ProcessQueue } from "./batchcall";
+import { Watch } from "./testing";
 const MKR_TOKEN = "0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa";
 const MKR_WHALE = "0x037245d2DDcE683436520EFc84590e1F6Fb043fD";
 const MKR_FISH = "0xa500B2427458D12Ef70dd7b1E031ef99d1cc09f7";
@@ -10,17 +10,23 @@ function QueueCall() {
   const [data1, setData1] = useState([]);
   const [data2, setData2] = useState([]);
   const [result, setResult] = useState([]);
-
-  useEffect(() => {
+  Watch();
+  /*useEffect(() => {
     console.log("Length is ", queue.length);
   }, [queue]);
 
   console.log("B ", data1);
   console.log("A ", data2);
-  const call = {
+  const call1 = {
     target: MKR_TOKEN,
     call: ["balanceOf(address)(uint256)", MKR_WHALE],
     returns: [["BALANCE_OF_MKR_WHALE", val => val / 10 ** 18]]
+  };
+
+  const call2 = {
+    target: MKR_TOKEN,
+    call: ["balanceOf(address)(uint256)", MKR_FISH],
+    returns: [["BALANCE_OF_MKR_FISH", val => val / 10 ** 18]]
   };
 
   const calls = [
@@ -59,16 +65,18 @@ function QueueCall() {
       call: ["balanceOf(address)(uint256)", MKR_FISH],
       returns: [["BALANCE_OF_MKR_FISHE", val => val / 10 ** 18]]
     }
-  ];
-  async function handleClick(label) {
+  ];*/
+  /*async function handleClick(label) {
+    console.log("Label is" + label);
     let offset = queue.length;
     let newqueue = queue;
-    newqueue.push(call);
+    if (label == "button1") newqueue.push(call1);
+    else if (label == "button2") newqueue.push(call2);
     setQueue(newqueue);
     console.log("Queue", queue);
-    if (queue.length > 6) Clear();
-
-    /*let a = ensureQueueIsClear(offset);
+    //if (queue.length > 1) Clear();
+  }*/
+  /*let a = ensureQueueIsClear(offset);
     if (label == "button1") {
       let b = data1;
       b.push(result[offset]);
@@ -77,7 +85,7 @@ function QueueCall() {
       let b = data2;
       b.push(result[offset]);
       setData2(b);
-    }*/
+    }
   }
   async function Clear() {
     console.log("Sending ", queue);
@@ -99,15 +107,10 @@ function QueueCall() {
   }
 
   async function getResult() {}
-
+*/
   return (
     <div>
-      <Button onClick={e => handleClick(e.target.label)} aria-label="button1">
-        ABC
-      </Button>
-      <Button onClick={e => handleClick()} aria-label="button2">
-        DEF
-      </Button>
+      <Typography>Hello</Typography>
     </div>
   );
 }
